@@ -1,0 +1,86 @@
+
+Copyright (C) 2012-2013 ROSA Laboratory
+All rights reserved.
+
+
+RELEASE INFORMATION
+
+Project:           Distro Changes Analyzer (distdiff)
+Version:           1.0
+Date:              2013-04-10
+
+
+This file explains how to install and setup environment
+for the tool in your computer.
+
+
+Content:
+
+   1. Requirements for Linux and FreeBSD
+   2. Requirements for Mac OS X
+   3. Configuring and Installing
+   4. Running the Tool
+
+
+1. REQUIREMENTS FOR LINUX AND FREEBSD
+=====================================
+
+   1. Perl 5 (5.8 or newer)
+   2. PkgDiff (1.5 or newer)
+   3. GNU Diff
+   4. GNU Wdiff
+   5. GNU Awk
+   6. GNU Binutils (readelf)
+
+1.1 Analysis of RPM packages
+
+   RPM (rpm, rpm2cpio)
+
+1.2 Analysis of DEB packages
+
+   DPKG (dpkg, dpkg-deb)
+
+
+
+2. REQUIREMENTS FOR MAC OS X
+============================
+
+   1. Perl 5 (5.8 or newer)
+   2. PkgDiff (1.5 or newer)
+   3. GNU Diff
+   4. GNU Wdiff
+   5. GNU Awk
+   6. Xcode (otool)
+
+
+
+3. CONFIGURING AND INSTALLING
+=============================
+
+   This command will install an distdiff program in the
+   PREFIX/bin system directory and private modules into the PREFIX/share:
+
+     sudo perl Makefile.pl -install --prefix=PREFIX [/usr, /usr/local, ...]
+
+2.1 Update
+
+     sudo perl Makefile.pl -update --prefix=PREFIX
+
+2.2 Remove
+
+     sudo perl Makefile.pl -remove --prefix=PREFIX
+
+
+
+4. RUNNING THE TOOL
+===================
+
+   1. distdiff DIR1 DIR2
+   
+   DIR1 and DIR2 - directories with old and new packages of the Linux distribution (RPM, DEB, TAR.GZ, etc)
+   
+   2. For advanced usage, see output of --help option
+
+
+
+Enjoy!

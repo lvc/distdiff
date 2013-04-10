@@ -1,0 +1,16 @@
+NAME:
+  Distro Changes Analyzer (distdiff) - a tool for analyzing changes in Linux distributions
+
+INSTALL:
+  sudo perl Makefile.pl -install --prefix=/usr
+  
+REQUIRES:
+  PkgDiff 1.5 or newer: http://pkgdiff.github.com/pkgdiff/
+
+USAGE:
+  distdiff DIR1 DIR2
+  
+  DIR1 and DIR2 - directories with old and new packages of the Linux distribution (RPM, DEB, TAR.GZ, etc)
+
+ADV. USAGE:
+  For advanced usage, see output of --help option
