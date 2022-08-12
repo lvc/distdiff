@@ -3,7 +3,7 @@
 # Makefile for distdiff
 # Install/remove the tool for GNU/Linux, FreeBSD and Mac OS X
 #
-# Copyright (C) 2011-2013 ROSA Laboratory
+# Copyright (C) 2011-2022 ABI Laboratory
 #
 # Written by Andrey Ponomarenko
 #
@@ -72,14 +72,13 @@ if(not @ARGV) {
     exit(0);
 }
 
-my ($PREFIX, $DESTDIR, $Help, $Install, $Update, $Remove);
+my ($PREFIX, $DESTDIR, $Help, $Install, $Remove);
 
 GetOptions(
     "h|help!" => \$Help,
     "prefix=s" => \$PREFIX,
     "destdir=s" => \$DESTDIR,
     "install!" => \$Install,
-    "update!" => \$Update,
     "remove!" => \$Remove
 ) or exit(1);
 
@@ -90,11 +89,16 @@ sub scenario()
         print $HELP_MSG;
         exit(0);
     }
-    if(not $Install and not $Update and not $Remove)
+    if(not $Install and not $Remove)
     {
         print STDERR "ERROR: command is not selected (-install, -update or -remove)\n";
         exit(1);
     }
+    if($Install)
+    { # remove old version first
+        $Remove = 1;
+    }
+
     if($PREFIX ne "/") {
         $PREFIX=~s/[\/]+\Z//g;
     }
@@ -155,7 +159,7 @@ sub scenario()
         print STDERR "ERROR: you should be root\n";
         exit(1);
     }
-    if($Remove or $Update)
+    if($Remove)
     {
         if(-e $EXE_PATH."/".$TOOL_SNAME)
         { # remove executable
@@ -169,7 +173,7 @@ sub scenario()
             rmtree($MODULES_PATH);
         }
     }
-    if($Install or $Update)
+    if($Install)
     {
         if(-e $EXE_PATH."/".$TOOL_SNAME or -e $MODULES_PATH)
         { # check installed

@@ -1,13 +1,13 @@
 
-Copyright (C) 2012-2013 ROSA Laboratory
+Copyright (C) 2012-2022 ABI Laboratory
 All rights reserved.
 
 
 RELEASE INFORMATION
 
 Project:           Distro Changes Analyzer (distdiff)
-Version:           1.0
-Date:              2013-04-10
+Version:           1.1
+Date:              2022-08-12
 
 
 This file explains how to install and setup environment
@@ -26,7 +26,7 @@ Content:
 =====================================
 
    1. Perl 5 (5.8 or newer)
-   2. PkgDiff (1.5 or newer)
+   2. PkgDiff (1.8 or newer)
    3. GNU Diff
    4. GNU Wdiff
    5. GNU Awk
@@ -46,7 +46,7 @@ Content:
 ============================
 
    1. Perl 5 (5.8 or newer)
-   2. PkgDiff (1.5 or newer)
+   2. PkgDiff (1.8 or newer)
    3. GNU Diff
    4. GNU Wdiff
    5. GNU Awk
@@ -60,15 +60,11 @@ Content:
    This command will install an distdiff program in the
    PREFIX/bin system directory and private modules into the PREFIX/share:
 
-     sudo perl Makefile.pl -install --prefix=PREFIX [/usr, /usr/local, ...]
+     sudo make install prefix=PREFIX [/usr, /usr/local, ...]
 
-2.1 Update
+2.1 Remove
 
-     sudo perl Makefile.pl -update --prefix=PREFIX
-
-2.2 Remove
-
-     sudo perl Makefile.pl -remove --prefix=PREFIX
+     sudo make uninstall prefix=PREFIX
 
 
 

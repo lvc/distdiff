@@ -5,7 +5,7 @@ INSTALL:
   sudo perl Makefile.pl -install --prefix=/usr
   
 REQUIRES:
-  PkgDiff 1.5 or newer: http://pkgdiff.github.com/pkgdiff/
+  PkgDiff 1.8 or newer: https://github.com/lvc/pkgdiff
 
 USAGE:
   distdiff DIR1 DIR2

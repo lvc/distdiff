@@ -1,9 +1,9 @@
 #!/usr/bin/perl
 ###########################################################################
-# DistDiff - Distro Changes Analyzer 1.0
+# DistDiff - Distro Changes Analyzer 1.1
 # A tool for analyzing changes in Linux distributions
 #
-# Copyright (C) 2012-2013 ROSA Laboratory
+# Copyright (C) 2012-2022 ABI Laboratory
 #
 # Written by Andrey Ponomarenko
 #
@@ -47,7 +47,7 @@ use File::Compare;
 use Cwd qw(abs_path cwd);
 use Config;
 
-my $TOOL_VERSION = "1.0";
+my $TOOL_VERSION = "1.1";
 my $OSgroup = get_OSgroup();
 my $ORIG_DIR = cwd();
 my $TMP_DIR = tempdir(CLEANUP=>1);
@@ -57,11 +57,11 @@ my $MODULES_DIR = get_Modules();
 push(@INC, get_dirname($MODULES_DIR));
 
 my $PKGDIFF = "pkgdiff";
-my $PKGDIFF_VERSION = "1.5";
+my $PKGDIFF_VERSION = "1.8";
 
 my ($Help, $ShowVersion, $DumpVersion, %Descriptor,
 $Browse, $OpenReport, $OutputReportPath, $Debug, $TargetName,
-$TargetArch, $ShowAll);
+$TargetArch, $ShowAll, $HideUnchanged, $SkipBin);
 
 my $CmdName = get_filename($0);
 
@@ -78,17 +78,11 @@ my %ERROR_CODE = (
     "Module_Error"=>9
 );
 
-my %HomePage = (
-    "Dev"=>"http://lvc.github.com/distdiff/"
-);
-
-my %Contacts = (
-    "Main"=>"aponomarenko\@rosalab.ru"
-);
+my $HomePage = "https://github.com/lvc/distdiff";
 
 my $ShortUsage = "Distro Changes Analyzer (DistDiff) $TOOL_VERSION
 A tool for analyzing changes in Linux distributions
-Copyright (C) 2013 ROSA Laboratory
+Copyright (C) 2022 ABI Laboratory
 License: GNU GPL
 
 Usage: $CmdName DIR1/ DIR2/ [options]
@@ -112,6 +106,8 @@ GetOptions("h|help!" => \$Help,
   "name=s" => \$TargetName,
   "arch=s" => \$TargetArch,
   "all-files!" => \$ShowAll,
+  "hide-unchanged!" => \$HideUnchanged,
+  "skip-bin!" => \$SkipBin,
 # other options
   "browse|b=s" => \$Browse,
   "open!" => \$OpenReport,
@@ -204,6 +200,12 @@ GENERAL OPTIONS:
       Check all files in packages.
       Default: only interface files (headers, libs, scripts, etc.)
 
+  -hide-unchanged
+      Don't count unchanged files in the report.
+
+  -skip-bin
+      Don't count pyc/pyo/ko.xz files in the report.
+
 OTHER OPTIONS:
   -b|-browse PROGRAM
       Open report(s) in the browser (firefox, opera, etc.).
@@ -222,13 +224,10 @@ EXIT CODES:
     0 - The tool has run without any errors.
     non-zero - The tool has run with errors.
 
-REPORT BUGS TO:
-    Andrey Ponomarenko <".$Contacts{"Main"}.">
-
 MORE INFORMATION:
-    ".$HomePage{"Dev"}."\n";
+    $HomePage\n";
 
-sub HELP_MESSAGE() {
+sub helpMsg() {
     printMsg("INFO", $HelpMessage."\n");
 }
 
@@ -1207,9 +1206,21 @@ sub pkgDiff($$$)
     my $Report = $ReportDir."/changes.html";
     
     my $Cmd = $PKGDIFF." \"$OldPath\" \"$NewPath\" --report-path=\"$REPORT_DIR/$Report\" --extra-info=\"$ExtraDir\"";
-    if($Debug) {
+
+    if($HideUnchanged) {
+        $Cmd .= " -hide-unchanged";
+    }
+
+    if($SkipBin) {
+        $Cmd .= " --skip-pattern='(\\.pyc|\\.pyo|\\.ko.xz)\\Z'";
+    }
+
+    if($Debug)
+    {
+        $Cmd .= " -debug";
         printMsg("INFO", "running ".$Cmd);
     }
+
     system($Cmd." >\"$TMP_DIR/log\"");
     
     my $Output = readFile("$TMP_DIR/log");
@@ -1226,7 +1237,7 @@ sub pkgDiff($$$)
         {
             foreach (split(/\s*\n\s*/, parseTag(\$Info, lc($Tag))))
             {
-                if(my ($From, $To) = split(";", $_)) {
+                if(my ($From, $To, $Rate) = split(";", $_)) {
                     $Result{$Name}{"Files"}{$Tag}{$From} = $To;
                 }
             }
@@ -1518,11 +1529,12 @@ sub createTable()
                 $REPORT .= "<td title='Changed/Removed Files' class='f_path'>\n";
                 foreach my $File (sort {lc($a) cmp lc($b)} @Changed)
                 {
+                    $File=~s/;(.+?)\Z/ <i>($1%)<\/i>/;
                     if(defined $Result{$Name}{"Files"}{"Removed"}{$File}) {
-                        $REPORT .= "<span style='color:Red;'>".$File."</span><br/>\n";
+                        $REPORT .= "<span style='color:Red;'><small>".$File."</small></span><br/>\n";
                     }
                     else {
-                        $REPORT .= $File."<br/>\n";
+                        $REPORT .= "<small>$File</small><br/>\n";
                     }
                 }
                 $REPORT .= "</td>\n";
@@ -1567,7 +1579,7 @@ sub createTable()
             {
                 $REPORT .= "<td title='Added Files' class='f_path'>\n";
                 foreach my $File (sort {lc($a) cmp lc($b)} @Added) {
-                    $REPORT .= $File."<br/>\n";
+                    $REPORT .= "<small>$File</small><br/>\n";
                 }
                 $REPORT .= "</td>\n";
             }
@@ -1635,11 +1647,8 @@ sub createReport($)
     $REPORT .= "\n</div>\n<br/><br/><br/><hr/>\n";
     
     # footer
-    $REPORT .= "<div style='width:100%;font-size:11px;' align='right'><i>Generated on ".(localtime time);
-    $REPORT .= " by <a href='".$HomePage{"Dev"}."' target='_blank'>Distro Changes Analyzer</a> - DistDiff";
-    $REPORT .= " $TOOL_VERSION &#160;<br/>A tool for analyzing changes in Linux distributions&#160;&#160;</i></div>";
-    
-    $REPORT .= "\n<div style='height:999px;'></div>\n</body></html>";
+    $REPORT .= "<div style='width:100%;font-size:0.75em' align='right'><i>Generated by <a href=\'$HomePage\' target='_blank'>DistDiff</a></i></div>\n";
+    $REPORT .= "</body></html>";
     writeFile($Path, $REPORT);
     
     printMsg("INFO", "");
@@ -1655,12 +1664,12 @@ sub scenario()
 {
     if($Help)
     {
-        HELP_MESSAGE();
+        helpMsg();
         exit(0);
     }
     if($ShowVersion)
     {
-        printMsg("INFO", "Distro Changes Analyzer (DistDiff) $TOOL_VERSION\nCopyright (C) 2013 ROSA Laboratory\nLicense: GNU GPL <http://www.gnu.org/licenses/>\nThis program is free software: you can redistribute it and/or modify it.\n\nWritten by Andrey Ponomarenko.");
+        printMsg("INFO", "Distro Changes Analyzer (DistDiff) $TOOL_VERSION\nCopyright (C) 2022 ABI Laboratory\nLicense: GNU GPL <http://www.gnu.org/licenses/>\nThis program is free software: you can redistribute it and/or modify it.\n\nWritten by Andrey Ponomarenko.");
         exit(0);
     }
     if($DumpVersion)
